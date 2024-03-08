@@ -1,0 +1,9 @@
+name: analyzeERCnetOutputEnv
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - pandas
+  - matplotlib
+  - seaborn
+  - upsetplot
