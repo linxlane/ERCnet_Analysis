@@ -261,9 +261,10 @@ def kde(avgRandValCountPath, dataPresAbPath, masterPath):
     propList = []
     
     for row in repData.index:
-        numbers = repData.loc[row].values.tolist()
-        denominator = sum([x for x in numbers if isinstance(x, np.int64)])
-        numerator = denominator - numbers[1]
+        numeratorList = list(repData.iloc[row, 2:13])
+        numerator = int(np.nansum(numeratorList))
+        oneColumn = int(repData.iloc[row, 1])
+        denominator = numerator + oneColumn
         prop = numerator / denominator
         propList.append(prop)
         
