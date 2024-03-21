@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jan 10 19:53:19 2024
+Created on Wed Mar 20 2024
 
 @author: linlane
 """
@@ -110,11 +110,12 @@ def writeAvgRandValCountsFile(dataPath, pres_ab_path):
   avgRandData = pandas.read_csv(dataPath, sep='\t')
   randDFCols = avgRandData.loc[:, ~avgRandData.columns.isin(['File_name', 'Proportion'])]
   meanRandData = randDFCols.mean()
-  randStDev = list(randDFCols.std().values)
   meanData = meanRandData.to_frame(name='avg_counts').reset_index(drop=True)
   meanData = meanData.replace(np.nan, 0)
+  randStDev = randDFCols.std()
+  stDevDF = randStDev.to_frame(name='st_dev').reset_index(drop=True)
   totalCol = pandas.DataFrame({'Total': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]})
-  newDF = pandas.concat([totalCol, meanData], axis=1)
+  newDF = pandas.concat([totalCol, meanData, stDevDF], axis=1)
   newDF.to_csv(pres_ab_path + '/avgRandValueCounts.tsv', sep='\t')
 
 
