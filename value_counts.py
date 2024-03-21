@@ -8,13 +8,9 @@ Created on Wed Jan 10 19:53:19 2024
 import os
 import pandas
 import csv
-import matplotlib.pyplot as plt
 import glob
-import seaborn as sns
 import numpy as np
 import time
-from upsetplot import plot, from_indicators
-import matplotlib as mpl
 import argparse
 
 #Set up an argumanet parser
