@@ -102,6 +102,8 @@ def randomSetsOverlap(randomSets, writeLocation):
   numericColumns = overlapContents.loc[:, ~overlapContents.columns.isin(['File_Name'])]
   avg = numericColumns.mean().to_list()
   overlapContents.loc[len(overlapContents.index)] = ['Average'] + avg
+  stDev = numericColumns.std().to_list()
+  overlapContents.loc[len(overlapContents.index)] = ['Standard Deviation'] + stDev
   overlapContents.to_csv(writeLocation + '/randSetSummary.tsv', sep='\t')
 
 def standardizeAndConcat(folderPath, writeLocationPath, fileName):
