@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(description='Script for generating plots only t
 
 parser.add_argument('-p', '--path', type=str, required=True, help='Full path to folder containing value count files.') 
 parser.add_argument('-w', '--write', type=str, required=True, help='Full path to folder where generated plot files will be written.') 
-parser.add_argument('-t', '--totalsBarplot', action='store_true', required=False, help='Include this flag to generate a totals barplot with ERCnet output.')
+parser.add_argument('-b', '--barplot', action='store_true', required=False, help='Include this flag to generate a totals barplot with ERCnet output.')
 parser.add_argument('-s', '--sbsBarplot', action='store_true', required=False, help='Include this flag to generate a side-by-side barplot with ERCnet output and random replicates.')
 parser.add_argument('-k', '--kde', action='store_true', required=False, help='Include this flag to generate a Kernal Density Plot from random replicates.')
 parser.add_argument('-u', '--upsetPlot', action='store_true', required=False, help='Include this flag to generate an upset plot.')
@@ -33,7 +33,7 @@ args = parser.parse_args()
 #Store arguments
 valueCountFiles=args.path
 writeLocation=args.write
-barplotArg=args.totalsBarplot
+barplotArg=args.barplot
 sbsArg=args.sbsBarplot
 kdeArg=args.kde
 upsetArg=args.upsetPlot
@@ -62,10 +62,14 @@ def totalsBarPlot(ERCnetData, writePath):
 def sidebysideBarplot(ercBarData, avgRandData, writePath):
     barWidth = 0.35
     xAxis = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    avgRandDataColumns = avgRandData.iloc[len(avgRandData.index)-1, 1:13]
+    avgRandDataX= avgRandDataColumns.index.astype(int).to_list()
+    avgRandDataY = avgRandDataColumns.astype(int).to_list()
+
     mpl.rcParams['pdf.fonttype'] = 42
     plt.Figure(figsize=(16,12))
     plt.bar(ercBarData['Total'], ercBarData['count'], bottom = 0.5, color='blue', width=-barWidth, align='edge', edgecolor ='black', label ='ERCnet Data')
-    plt.bar(avgRandData['Total'], avgRandData['avg_counts'], bottom=0.5, yerr=avgRandData['st_dev'], color='grey', width=barWidth, align='edge', edgecolor ='black', label ='Random')
+    plt.bar(avgRandDataX, avgRandDataY, bottom=0.5, color='grey', width=barWidth, align='edge', edgecolor ='black', label ='Random')
     plt.title('ERC Data vs Rand Null Hyp')
     plt.yscale('log')
     plt.xticks(xAxis)
@@ -125,10 +129,13 @@ if all(f == False for f in argsList):
     print("No flags passed. No plots will be generated.")
 
 else:
+    if not os.path.exists(writeLocation):
+        os.makedirs(writeLocation)
+    
     filesList = collectFiles(valueCountFiles)
 
-    ercDataDF = pandas.read_csv(valueCountFiles + '/value_counts.tsv', sep='\t')
-    avgRandDataDF = pandas.read_csv(valueCountFiles + '/avgRandValueCounts.tsv', sep='\t', index_col=0)
+    ercDataDF = pandas.read_csv(valueCountFiles + '/ERCnetData_valueCounts.tsv', sep='\t')
+    avgRandDataDF = pandas.read_csv(valueCountFiles + '/randSetSummary.tsv', sep='\t', index_col=0)
     print('ERCnet data totals')
     print(ercDataDF)
     print('Average totals from random replicates')
