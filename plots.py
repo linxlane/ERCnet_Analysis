@@ -31,7 +31,7 @@ parser.add_argument('-u', '--upsetPlot', action='store_true', required=False, he
 args = parser.parse_args()
 
 #Store arguments
-valueCountFiles=args.path
+summaryFiles=args.path
 writeLocation=args.write
 barplotArg=args.barplot
 sbsArg=args.sbsBarplot
@@ -80,7 +80,7 @@ def sidebysideBarplot(ercBarData, avgRandData, writePath):
     plt.savefig(writePath + '/sidebysideBarplot.pdf', format = 'pdf', transparent = True) 
     plt.close()
 
-def kde(avgRandDataDF, ercDataDF, masterPath):
+def kde(avgRandDataDF, ercDataDF, writeLocation):
     propListFull = avgRandDataDF['Proportion_2+_Overlap'].to_list()
     propListRandOnly = propListFull[:len(propListFull)-2]
     print(propListRandOnly)
@@ -95,18 +95,16 @@ def kde(avgRandDataDF, ercDataDF, masterPath):
     sns.kdeplot(propListRandOnly)
     plt.axvline(x = realDataProp, color = 'red')
     plt.title('KDE')
-    plt.savefig(masterPath + '/kde.pdf', format = 'pdf', transparent = True) 
+    plt.savefig(writeLocation + '/kde.pdf', format = 'pdf', transparent = True) 
     
-def upsetPlot(presenceTablePath, masterPath):
-    fullPresenceTable = pandas.read_csv(presenceTablePath, sep='\t')
-    genePairOverlap = fullPresenceTable[(fullPresenceTable['Total'] > 1)]
-    genePairOverlap.drop(columns=['Total'], axis = 1)
-    genePairOverlap.to_csv(masterPath + '/overlap.tsv', sep='\t', index=False)
+def upsetPlot(overlapFile, writeLocation):
+    genePairOverlap = pandas.read_csv(overlapFile, sep='\t')
+    
     upset = from_indicators(lambda genePairOverlap: genePairOverlap.select_dtypes(bool), data=genePairOverlap)
     mpl.rcParams['pdf.fonttype'] = 42
     fig = plt.figure(figsize=(40, 15))
     plot(upset, fig=fig, element_size=None, sort_categories_by='-input')
-    plt.savefig(masterPath + '/upsetPlot.pdf', format = 'pdf', transparent = True) 
+    plt.savefig(writeLocation + '/upsetPlot.pdf', format = 'pdf', transparent = True) 
     plt.title('UpSet Plot')
     plt.close()
     
@@ -122,16 +120,15 @@ else:
     if not os.path.exists(writeLocation):
         os.makedirs(writeLocation)
     
-    filesList = collectFiles(valueCountFiles)
+    filesList = collectFiles(summaryFiles)
 
-    ercDataDF = pandas.read_csv(valueCountFiles + '/ERCnetData_valueCounts.tsv', sep='\t')
-    avgRandDataDF = pandas.read_csv(valueCountFiles + '/randSetSummary.tsv', sep='\t', index_col=0)
-    '''
+    ercDataDF = pandas.read_csv(summaryFiles + '/ERCnetData_valueCounts.tsv', sep='\t')
+    avgRandDataDF = pandas.read_csv(summaryFiles + '/randSetSummary.tsv', sep='\t', index_col=0)
+
     print('ERCnet data totals')
     print(ercDataDF)
     print('Average totals from random replicates')
     print(avgRandDataDF)
-    '''
 
     if barplotArg == True:
         totalsBarPlot(ercDataDF, writeLocation)
@@ -143,8 +140,9 @@ else:
 
     if kdeArg == True:
         kde(avgRandDataDF, ercDataDF, writeLocation)
+        print('Kernel Density Estimate Plot sucessfully generated!')
 
     if upsetArg == True:
-        upsetPlot(ercDataDF, masterFolder)
+        upsetPlot(summaryFiles + '/overlap.tsv', writeLocation)
 
 print("Program took", time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - start_time)), "to run")

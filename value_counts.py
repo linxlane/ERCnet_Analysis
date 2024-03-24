@@ -207,6 +207,12 @@ def writeDataValCountFile(dataPresAbPath, pres_abFolderPath):
     valueCounts.to_csv(newFolderPath, sep='\t')
     return newFolderPath
 
+def writeOverlapFile(presenceTablePath, summaryFolderPath):
+    fullPresenceTable = pandas.read_csv(presenceTablePath, sep='\t')
+    genePairOverlap = fullPresenceTable[(fullPresenceTable['Total'] > 1)]
+    genePairOverlap.drop(columns=['Total'], axis = 1)
+    genePairOverlap.to_csv(summaryFolderPath + '/overlap.tsv', sep='\t', index=False)
+
 def main(masterFolder, reps):
     start_time = time.time()
 
@@ -247,6 +253,8 @@ def main(masterFolder, reps):
     dataPresenceTablePath = writeTable(dataPresenceTable, pres_abFolderPath, 'ERC_data')
     
     writeDataValCountFile(dataPresenceTablePath, summaryFolderPath)
+
+    writeOverlapFile(dataPresenceTablePath, summaryFolderPath)
     
     print("Program took", time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - start_time)), "to run")
 
