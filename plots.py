@@ -80,34 +80,23 @@ def sidebysideBarplot(ercBarData, avgRandData, writePath):
     plt.savefig(writePath + '/sidebysideBarplot.pdf', format = 'pdf', transparent = True) 
     plt.close()
 
-def kde(avgRandDataDF, dataPresAbPath, masterPath):
-    repData = pandas.read_csv(avgRandDataDF, sep='\t')
-    repData['Proportion'] = np.nan
-    propList = []
-    
-    for row in repData.index:
-        numeratorList = list(repData.iloc[row, 2:13])
-        numerator = int(np.nansum(numeratorList))
-        oneColumn = int(repData.iloc[row, 1])
-        denominator = numerator + oneColumn
-        prop = numerator / denominator
-        propList.append(prop)
-        
-    repData['Proportion'] = propList
-    repData.to_csv(avgRandDataDF, sep='\t')
-     
-    realDataValCounts = pandas.read_csv(dataPresAbPath, sep='\t')
-    realDataValsList = realDataValCounts['count'].values.tolist()
+def kde(avgRandDataDF, ercDataDF, masterPath):
+    propListFull = avgRandDataDF['Proportion_2+_Overlap'].to_list()
+    propListRandOnly = propListFull[:len(propListFull)-2]
+    print(propListRandOnly)
+
+    dataValueCounts = ercDataDF['count'].values.tolist()
     greaterThanOne = 0
-    for ele in range(1, len(realDataValsList)):
-        greaterThanOne = greaterThanOne + realDataValsList[ele]
-    realDataProp = greaterThanOne/sum(realDataValsList)
+    for ele in range(1, len(dataValueCounts)):
+        greaterThanOne = greaterThanOne + dataValueCounts[ele]
+    realDataProp = greaterThanOne/sum(dataValueCounts)
+
     mpl.rcParams['pdf.fonttype'] = 42
-    sns.kdeplot(repData['Proportion'])
+    sns.kdeplot(propListRandOnly)
     plt.axvline(x = realDataProp, color = 'red')
     plt.title('KDE')
     plt.savefig(masterPath + '/kde.pdf', format = 'pdf', transparent = True) 
-
+    
 def upsetPlot(presenceTablePath, masterPath):
     fullPresenceTable = pandas.read_csv(presenceTablePath, sep='\t')
     genePairOverlap = fullPresenceTable[(fullPresenceTable['Total'] > 1)]
@@ -137,10 +126,12 @@ else:
 
     ercDataDF = pandas.read_csv(valueCountFiles + '/ERCnetData_valueCounts.tsv', sep='\t')
     avgRandDataDF = pandas.read_csv(valueCountFiles + '/randSetSummary.tsv', sep='\t', index_col=0)
+    '''
     print('ERCnet data totals')
     print(ercDataDF)
     print('Average totals from random replicates')
     print(avgRandDataDF)
+    '''
 
     if barplotArg == True:
         totalsBarPlot(ercDataDF, writeLocation)
@@ -151,7 +142,7 @@ else:
         print('Barplot showing total counts from ERCnet output and average random replicate counts sucessfully generated!')
 
     if kdeArg == True:
-        kde(avgRandDataDF, dataValCounts, masterFolder)
+        kde(avgRandDataDF, ercDataDF, writeLocation)
 
     if upsetArg == True:
         upsetPlot(ercDataDF, masterFolder)
