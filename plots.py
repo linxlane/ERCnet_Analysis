@@ -26,6 +26,7 @@ parser.add_argument('-b', '--barplot', action='store_true', required=False, help
 parser.add_argument('-s', '--sbsBarplot', action='store_true', required=False, help='Include this flag to generate a side-by-side barplot with ERCnet output and random replicates.')
 parser.add_argument('-k', '--kde', action='store_true', required=False, help='Include this flag to generate a Kernal Density Plot from random replicates.')
 parser.add_argument('-u', '--upsetPlot', action='store_true', required=False, help='Include this flag to generate an upset plot.')
+parser.add_argument('-a', '--all', action='store_true', required=False, help='Include this flag to generate all plots.')
 
 #Define the parser
 args = parser.parse_args()
@@ -37,6 +38,7 @@ barplotArg=args.barplot
 sbsArg=args.sbsBarplot
 kdeArg=args.kde
 upsetArg=args.upsetPlot
+allPlots = args.all
 
 def collectFiles(path, endStr = '.tsv'):
     files = []
@@ -111,7 +113,7 @@ def upsetPlot(overlapFile, writeLocation):
 
 start_time = time.time()
 
-argsList = [barplotArg, sbsArg, kdeArg, upsetArg]
+argsList = [barplotArg, sbsArg, kdeArg, upsetArg, allPlots]
 
 if all(f == False for f in argsList):
     print("No flags passed. No plots will be generated.")
@@ -130,19 +132,20 @@ else:
     print('Average totals from random replicates')
     print(avgRandDataDF)
 
-    if barplotArg == True:
+    if barplotArg == True or allPlots == True:
         totalsBarPlot(ercDataDF, writeLocation)
         print('Barplot showing total counts from ERCnet output sucessfully generated!')
 
-    if sbsArg == True:
+    if sbsArg == True or allPlots == True:
         sidebysideBarplot(ercDataDF, avgRandDataDF, writeLocation)
         print('Barplot showing total counts from ERCnet output and average random replicate counts sucessfully generated!')
 
-    if kdeArg == True:
+    if kdeArg == True or allPlots == True:
         kde(avgRandDataDF, ercDataDF, writeLocation)
         print('Kernel Density Estimate Plot sucessfully generated!')
 
-    if upsetArg == True:
+    if upsetArg == True or allPlots == True:
         upsetPlot(summaryFiles + '/overlap.tsv', writeLocation)
+        print('UpSet Plot sucessfully generated!')
 
 print("Program took", time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - start_time)), "to run")
