@@ -104,7 +104,7 @@ def randomSetsOverlap(randomSets, writeLocation):
   overlapContents.loc[len(overlapContents.index)] = ['Average'] + avg
   overlapContents.to_csv(writeLocation + '/randSetSummary.tsv', sep='\t')
 
-def standardizeAndConcat(folderPath, fileName):
+def standardizeAndConcat(folderPath, writeLocationPath, fileName):
     contents = pandas.read_csv(folderPath + '/' + fileName, sep='\t', usecols=['GeneA_ID','GeneB_ID'])
     removeNa = contents.dropna()
     castStringContents = removeNa.astype(str)
@@ -114,7 +114,7 @@ def standardizeAndConcat(folderPath, fileName):
     for row in standardizedIDs:
         pairedIDs.append(str(row[0]) + '||' + str(row[1]))
     
-    newFilePath = folderPath + '/' + fileName.replace('.tsv', '') + '_sorted.tsv'
+    newFilePath = writeLocationPath + '/' + fileName.replace('.tsv', '') + '_sorted.tsv'
     
     with open(newFilePath, 'w') as output:
         tsv_output = csv.writer(output, delimiter='\n')
@@ -152,11 +152,11 @@ def presence_absence(inputGenePair, pairsByFile):
     return presenceList
 
 def writeTable(presenceTable, pres_abFolderPath, folderName):
-    presenceTablePath = pres_abFolderPath + '/' + folderName +'ERCnetData_presence_absence_counts.tsv' 
+    presenceTablePath = pres_abFolderPath + '/' + folderName +'_presence_absence_counts.tsv' 
     presenceTable.to_csv(presenceTablePath, sep='\t', index=False)
     return presenceTablePath
 
-def generatePresAbTable(workingFolderPath):
+def generatePresAbTable(workingFolderPath, writeLocation):
     print(workingFolderPath)
     
     files = collectFiles(workingFolderPath)    
@@ -164,18 +164,18 @@ def generatePresAbTable(workingFolderPath):
     
     ## Use the standardizeAndConcat method to create new files containing paired gene IDs     
     for file in files:
-        standardizeAndConcat(workingFolderPath, file)
+        standardizeAndConcat(workingFolderPath, writeLocation, file)
         
     ## Create a list of all sorted file containing paired gene IDs
     # Collect sorted files from folder path
-    sortedFiles = collectFiles(workingFolderPath, '_sorted.tsv')
+    sortedFiles = collectFiles(writeLocation, '_sorted.tsv')
     print(sortedFiles)
     
     ## Generate a list of sets 
     ## where the inner sets contain the gene pairs from each sorted file 
     ## and the outerlists holds the lists of gene pairs in each sorted file
     print('Generate list of sets')
-    pairsByFileOut = genePairsByFile(workingFolderPath, sortedFiles)   
+    pairsByFileOut = genePairsByFile(writeLocation, sortedFiles)   
     
     ## Generate master list of all possible gene pairs
     #Create empty master list
@@ -207,19 +207,21 @@ def writeDataValCountFile(dataPresAbPath, pres_abFolderPath):
 
 def main(masterFolder, reps):
     start_time = time.time()
+
+    outFolder = masterFolder + '/OUT_ERCnet_Analysis'
     
-    pres_abFolderPath = masterFolder + '/presence_absence_files'
+    pres_abFolderPath = outFolder + '/presence_absence_files'
     
     if not os.path.exists(pres_abFolderPath):
         os.makedirs(pres_abFolderPath)
 
-    summaryFolderPath = masterFolder + '/summary_files'
+    summaryFolderPath = outFolder + '/summary_files'
     
     if not os.path.exists(summaryFolderPath):
         os.makedirs(summaryFolderPath)
         
-  ##Generate value counts file for random replicates
-    randomFolderPath = masterFolder + '/randomSets'
+  ##Generate summar file for random replicates
+    randomFolderPath = outFolder + '/randomSets'
     
     if not os.path.exists(randomFolderPath):
         os.makedirs(randomFolderPath)
@@ -229,15 +231,20 @@ def main(masterFolder, reps):
     randSetFolderNames = collectFiles(randomFolderPath, '')
     
     for folderName in randSetFolderNames:
-        randPresAbTable = generatePresAbTable(randomFolderPath + '/' + folderName) 
+        randPresAbTable = generatePresAbTable(randomFolderPath + '/' + folderName, randomFolderPath + '/' + folderName) 
         writeTable(randPresAbTable, pres_abFolderPath, folderName)
 
     randomSetsOverlap(pres_abFolderPath, summaryFolderPath)
 
-    dataPresenceTable = generatePresAbTable(masterFolder)
+    sortedFolderPath = outFolder + '/sortedERCnetFiles'
+    
+    if not os.path.exists(sortedFolderPath):
+        os.makedirs(sortedFolderPath)
+
+    dataPresenceTable = generatePresAbTable(masterFolder, sortedFolderPath)
     dataPresenceTablePath = writeTable(dataPresenceTable, pres_abFolderPath, 'ERC_data')
     
-    dataValCounts = writeDataValCountFile(dataPresenceTablePath, summaryFolderPath)
+    writeDataValCountFile(dataPresenceTablePath, summaryFolderPath)
     
     print("Program took", time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - start_time)), "to run")
 
