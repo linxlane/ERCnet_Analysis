@@ -42,11 +42,9 @@ def randomSetsOverlap(randomSets, writeLocation):
       oneColumn = int(overlapContents.iloc[row, 1])
       denominator = numerator + oneColumn
       prop = numerator / denominator
-      propList.append(prop)
-      
+      propList.append(prop)    
   overlapContents['Proportion_2+_Overlap'] = propList
-  print(overlapContents)
-
+  
   numericColumns = overlapContents.loc[:, ~overlapContents.columns.isin(['File_Name'])]
   avg = numericColumns.mean().to_list()
   overlapContents.loc[len(overlapContents.index)] = ['Average'] + avg

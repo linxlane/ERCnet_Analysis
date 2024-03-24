@@ -69,55 +69,40 @@ def generateRandomizedFiles(dataFolder, randomSetsFolder, reps):
             newFilePath = randFolderPath + '/' + file.replace('.tsv', '') + '_rand.tsv'
             randomized.to_csv(newFilePath, sep='\t', index=False)
 
-def randValueCounts(pres_ab_folderInput):
-    avgRandFilePath = pres_ab_folderInput + '/randValueCounts.tsv'
-    file1 = open(avgRandFilePath, "w")
-    L = ["File_name\t", "1\t", "2\t", "3\t", "4\t", "5\t", "6\t", "7\t", "8\t", "9\t", "10\t", "11\t", "12\n",]
-    file1.writelines(L)
-    file1.close()
-    
-    files = glob.glob(pres_ab_folderInput + '/randomized*_presence_absence_counts.tsv')
-    print('Randomized Files: ' + str(files))
-    
-    dfs = [pandas.read_csv(f, sep="\t") for f in files]
-    
-    i=0
-    fileIndex = 0
-    for table in dfs:
-        i=0
-        data = table['Total'].value_counts().to_frame()
-     
-        countsList = []
-        length = len(list(data['count']))
-        
-        for i in range(0, length):
-            countsList.append(list(data['count'])[i])
-        
-        delim = "\t"
- 
-        # using list comprehension to convert each element to string and adding delim
-        res = delim.join([str(ele) for ele in countsList])
-        
-        # Append-adds at last
-        file1 = open(avgRandFilePath, "a")  # append mode
-        newLine = files[fileIndex] + "\t" + res + "\n"
-        file1.writelines(newLine)
-        file1.close()
-        fileIndex+=1
-    return avgRandFilePath
+def randomSetsOverlap(randomSets, writeLocation):
+  files = glob.glob(randomSets + '/randomized*_presence_absence_counts.tsv')
+  #print('Randomized Files: ' + str(files))
 
-def writeAvgRandValCountsFile(dataPath, pres_ab_path):
-  avgRandData = pandas.read_csv(dataPath, sep='\t')
-  randDFCols = avgRandData.loc[:, ~avgRandData.columns.isin(['File_name', 'Proportion'])]
-  meanRandData = randDFCols.mean()
-  meanData = meanRandData.to_frame(name='avg_counts').reset_index(drop=True)
-  meanData = meanData.replace(np.nan, 0)
-  randStDev = randDFCols.std()
-  stDevDF = randStDev.to_frame(name='st_dev').reset_index(drop=True)
-  totalCol = pandas.DataFrame({'Total': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]})
-  newDF = pandas.concat([totalCol, meanData, stDevDF], axis=1)
-  newDF.to_csv(pres_ab_path + '/avgRandValueCounts.tsv', sep='\t')
+  dfs = [pandas.read_csv(f, sep="\t") for f in files]
+  #print(dfs)
 
+  overlapContents = pandas.DataFrame(columns=['File_Name', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'])
+  #print(overlapContents)
+
+  for i in range(len(dfs)):
+    newRow = [files[i]]
+    data = dfs[i]['Total'].value_counts().to_list()
+    newRow += data
+    newRow += [0]*(13 - len(newRow))
+    #print(newRow)
+    overlapContents.loc[len(overlapContents.index)] = newRow
+
+  overlapContents['Proportion_2+_Overlap'] = np.nan
+  propList = []
+  
+  for row in overlapContents.index:
+      numeratorList = list(overlapContents.iloc[row, 2:13])
+      numerator = int(np.nansum(numeratorList))
+      oneColumn = int(overlapContents.iloc[row, 1])
+      denominator = numerator + oneColumn
+      prop = numerator / denominator
+      propList.append(prop)    
+  overlapContents['Proportion_2+_Overlap'] = propList
+  
+  numericColumns = overlapContents.loc[:, ~overlapContents.columns.isin(['File_Name'])]
+  avg = numericColumns.mean().to_list()
+  overlapContents.loc[len(overlapContents.index)] = ['Average'] + avg
+  overlapContents.to_csv(writeLocation + '/randSetSummary.tsv', sep='\t')
 
 def standardizeAndConcat(folderPath, fileName):
     contents = pandas.read_csv(folderPath + '/' + fileName, sep='\t', usecols=['GeneA_ID','GeneB_ID'])
@@ -167,7 +152,7 @@ def presence_absence(inputGenePair, pairsByFile):
     return presenceList
 
 def writeTable(presenceTable, pres_abFolderPath, folderName):
-    presenceTablePath = pres_abFolderPath + '/' + folderName +'_presence_absence_counts.tsv' 
+    presenceTablePath = pres_abFolderPath + '/' + folderName +'ERCnetData_presence_absence_counts.tsv' 
     presenceTable.to_csv(presenceTablePath, sep='\t', index=False)
     return presenceTablePath
 
@@ -216,7 +201,7 @@ def writeDataValCountFile(dataPresAbPath, pres_abFolderPath):
     dataframe = pandas.read_csv(dataPresAbPath, sep='\t')
     valueCounts = dataframe['Total'].value_counts()
     print(valueCounts)
-    newFolderPath = pres_abFolderPath + '/value_counts.tsv'
+    newFolderPath = pres_abFolderPath + '/ERCnetData_valueCounts.tsv'
     valueCounts.to_csv(newFolderPath, sep='\t')
     return newFolderPath
 
@@ -228,10 +213,10 @@ def main(masterFolder, reps):
     if not os.path.exists(pres_abFolderPath):
         os.makedirs(pres_abFolderPath)
 
-    value_countsFolderPath = masterFolder + '/value_count_files'
+    summaryFolderPath = masterFolder + '/summary_files'
     
-    if not os.path.exists(value_countsFolderPath):
-        os.makedirs(value_countsFolderPath)
+    if not os.path.exists(summaryFolderPath):
+        os.makedirs(summaryFolderPath)
         
   ##Generate value counts file for random replicates
     randomFolderPath = masterFolder + '/randomSets'
@@ -247,13 +232,12 @@ def main(masterFolder, reps):
         randPresAbTable = generatePresAbTable(randomFolderPath + '/' + folderName) 
         writeTable(randPresAbTable, pres_abFolderPath, folderName)
 
-    randValCountPath = randValueCounts(pres_abFolderPath)
-    writeAvgRandValCountsFile(randValCountPath, value_countsFolderPath)
+    randomSetsOverlap(pres_abFolderPath, summaryFolderPath)
 
     dataPresenceTable = generatePresAbTable(masterFolder)
     dataPresenceTablePath = writeTable(dataPresenceTable, pres_abFolderPath, 'ERC_data')
     
-    dataValCounts = writeDataValCountFile(dataPresenceTablePath, value_countsFolderPath)
+    dataValCounts = writeDataValCountFile(dataPresenceTablePath, summaryFolderPath)
     
     print("Program took", time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - start_time)), "to run")
 
