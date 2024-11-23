@@ -21,6 +21,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Script for generating plots only to analyze ERCnet run')
 
 parser.add_argument('-p', '--path', type=str, required=True, help='Full path to folder containing value count files.') 
+parser.add_argument('-n', '--name', type=str, required=True, help='Name to add to plots') 
 parser.add_argument('-w', '--write', type=str, required=True, help='Full path to folder where generated plot files will be written.') 
 parser.add_argument('-b', '--barplot', action='store_true', required=False, help='Include this flag to generate a totals barplot with ERCnet output.')
 parser.add_argument('-s', '--sbsBarplot', action='store_true', required=False, help='Include this flag to generate a side-by-side barplot with ERCnet output and random replicates.')
@@ -33,6 +34,7 @@ args = parser.parse_args()
 
 #Store arguments
 summaryFiles=args.path
+dataName = args.name
 writeLocation=args.write
 barplotArg=args.barplot
 sbsArg=args.sbsBarplot
@@ -49,7 +51,7 @@ def collectFiles(path, endStr = '.tsv'):
     return files
 
 def totalsBarPlot(ERCnetData, writePath):
-    xAxis = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    xAxis = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 , 13, 14, 15, 16, 17, 18, 19, 20]
     mpl.rcParams['pdf.fonttype'] = 42
     plt.Figure(figsize=(3,2))
     plt.bar(ercDataDF['Total'], ercDataDF['count'], bottom = 0.5)
@@ -63,7 +65,7 @@ def totalsBarPlot(ERCnetData, writePath):
 
 def sidebysideBarplot(ercBarData, avgRandData, writePath):
     barWidth = 0.35
-    xAxis = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    xAxis = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 , 13, 14, 15, 16, 17, 18, 19, 20]
     allCounts = avgRandData.iloc[1:len(avgRandData.index)-2, 1:13]
     print(type(allCounts))
     print(allCounts)
@@ -105,8 +107,8 @@ def kde(avgRandDataDF, ercDataDF, writeLocation):
     sns.kdeplot(propListRandOnly)
     plt.axvline(x = realDataProp, color = 'red')
     plt.xlim(left=0)
-    plt.title('R2T FDR KDE')
-    plt.savefig(writeLocation + '/R2T_FDR_ZeroKDE.pdf', format = 'pdf', transparent = True) 
+    plt.title('KDE')
+    plt.savefig(writeLocation + '/KDE.pdf', format = 'pdf', transparent = True) 
     
 def upsetPlot(overlapFile, writeLocation):
     genePairOverlap = pandas.read_csv(overlapFile, sep='\t')
@@ -119,8 +121,6 @@ def upsetPlot(overlapFile, writeLocation):
     plt.title('UpSet Plot')
     plt.close()
     
-
-start_time = time.time()
 
 argsList = [barplotArg, sbsArg, kdeArg, upsetArg, allPlots]
 
@@ -156,5 +156,4 @@ else:
     if upsetArg == True or allPlots == True:
         upsetPlot(summaryFiles + '/overlap.tsv', writeLocation)
         print('UpSet Plot sucessfully generated!')
-
-print("Program took", time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - start_time)), "to run")
+    print("All Done!")
