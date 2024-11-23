@@ -21,7 +21,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Script for generating plots only to analyze ERCnet run')
 
 parser.add_argument('-p', '--path', type=str, required=True, help='Full path to folder containing value count files.') 
-parser.add_argument('-n', '--name', type=str, required=True, help='Name to add to plots') 
+#parser.add_argument('-n', '--name', type=str, required=True, help='Name to add to plots') 
 parser.add_argument('-w', '--write', type=str, required=True, help='Full path to folder where generated plot files will be written.') 
 parser.add_argument('-b', '--barplot', action='store_true', required=False, help='Include this flag to generate a totals barplot with ERCnet output.')
 parser.add_argument('-s', '--sbsBarplot', action='store_true', required=False, help='Include this flag to generate a side-by-side barplot with ERCnet output and random replicates.')
@@ -34,7 +34,7 @@ args = parser.parse_args()
 
 #Store arguments
 summaryFiles=args.path
-dataName = args.name
+#dataName = args.name
 writeLocation=args.write
 barplotArg=args.barplot
 sbsArg=args.sbsBarplot
