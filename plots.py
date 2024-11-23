@@ -64,15 +64,23 @@ def totalsBarPlot(ERCnetData, writePath):
 def sidebysideBarplot(ercBarData, avgRandData, writePath):
     barWidth = 0.35
     xAxis = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    allCounts = avgRandData.iloc[1:len(avgRandData.index)-2, 1:13]
+    print(type(allCounts))
+    print(allCounts)
+    newRandStDev = list(allCounts.std().values)
     avgRandDataColumns = avgRandData.iloc[len(avgRandData.index)-2, 1:13]
+    #print(avgRandDataColumns)
     avgRandDataX= avgRandDataColumns.index.astype(int).to_list()
+    #print(avgRandDataX)
     avgRandDataY = avgRandDataColumns.astype(int).to_list()
-    randStDev = avgRandData.iloc[len(avgRandData.index)-1, 1:13]
+    #print(avgRandDataY)
+    randStDevData = list(avgRandData.iloc[len(avgRandData.index)-1, 1:13])
+    print(randStDevData)
 
     mpl.rcParams['pdf.fonttype'] = 42
     plt.Figure(figsize=(16,12))
     plt.bar(ercBarData['Total'], ercBarData['count'], bottom = 0.5, color='blue', width=-barWidth, align='edge', edgecolor ='black', label ='ERCnet Data')
-    plt.bar(avgRandDataX, avgRandDataY, yerr=randStDev, bottom=0.5, color='grey', width=barWidth, align='edge', edgecolor ='black', label ='Random')
+    plt.bar(avgRandDataX, avgRandDataY, yerr=newRandStDev, bottom=0.5, color='grey', width=barWidth, align='edge', edgecolor ='black', label ='Random')
     plt.title('ERC Data vs Rand Null Hyp')
     plt.yscale('log')
     plt.xticks(xAxis)
@@ -85,7 +93,7 @@ def sidebysideBarplot(ercBarData, avgRandData, writePath):
 def kde(avgRandDataDF, ercDataDF, writeLocation):
     propListFull = avgRandDataDF['Proportion_2+_Overlap'].to_list()
     propListRandOnly = propListFull[:len(propListFull)-2]
-    print(propListRandOnly)
+    #print(propListRandOnly)
 
     dataValueCounts = ercDataDF['count'].values.tolist()
     greaterThanOne = 0
@@ -96,8 +104,9 @@ def kde(avgRandDataDF, ercDataDF, writeLocation):
     mpl.rcParams['pdf.fonttype'] = 42
     sns.kdeplot(propListRandOnly)
     plt.axvline(x = realDataProp, color = 'red')
-    plt.title('KDE')
-    plt.savefig(writeLocation + '/kde.pdf', format = 'pdf', transparent = True) 
+    plt.xlim(left=0)
+    plt.title('R2T FDR KDE')
+    plt.savefig(writeLocation + '/R2T_FDR_ZeroKDE.pdf', format = 'pdf', transparent = True) 
     
 def upsetPlot(overlapFile, writeLocation):
     genePairOverlap = pandas.read_csv(overlapFile, sep='\t')
@@ -127,10 +136,10 @@ else:
     ercDataDF = pandas.read_csv(summaryFiles + '/ERCnetData_valueCounts.tsv', sep='\t')
     avgRandDataDF = pandas.read_csv(summaryFiles + '/randSetSummary.tsv', sep='\t', index_col=0)
 
-    print('ERCnet data totals')
-    print(ercDataDF)
-    print('Average totals from random replicates')
-    print(avgRandDataDF)
+    #print('ERCnet data totals')
+    #print(ercDataDF)
+    #print('Average totals from random replicates')
+    #print(avgRandDataDF)
 
     if barplotArg == True or allPlots == True:
         totalsBarPlot(ercDataDF, writeLocation)
