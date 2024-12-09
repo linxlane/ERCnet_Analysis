@@ -258,4 +258,5 @@ def main(masterFolder, reps):
     
     print("Program took", time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - start_time)), "to run")
 
-main(ercNetOutputFiles, numberOfRandom)
+if __name__ == '__main__':
+    main(ercNetOutputFiles, numberOfRandom)
