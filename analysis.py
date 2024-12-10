@@ -34,6 +34,17 @@ def collectFiles(path, endStr = '.tsv'):
     files.sort()
     return files
 
+def uniqueOut(outPath, i = 0):
+    if not os.path.exists(outPath):
+        return outPath
+    else:
+        i += 1
+        if outPath[-1].isdigit():
+            newOutPath = outPath[:-2] + '_' + str(i)
+        else: 
+            newOutPath = outPath + '_' + str(i)
+        return uniqueOut(newOutPath, i)
+
 def navigateFinder(currentFolderPath, i):
     inds = [i for i, c in enumerate(currentFolderPath) if c=='/']
     sliceSpot = inds[i]
@@ -274,9 +285,8 @@ def main(masterFolder, reps):
 
     if os.path.exists(outFolder):
         print('Existing output folder found.')
-        print('Deleting output folder to start fresh.')
-        shutil.rmtree(outFolder)
-        print("Directory deleted successfully.")
+        print('Generating unique output directory for analysis files')
+        outFolder = uniqueOut(outFolder)
         print('----------------------------------------------------------')
 
     print('Output files will be written in: '  + outFolder)
@@ -391,5 +401,6 @@ def main(masterFolder, reps):
     print()
     print('##########################################################')
     print('Full analysis complete!')
+
 if __name__ == '__main__':
     main(ercNetOutputFiles, numberOfRandom)
