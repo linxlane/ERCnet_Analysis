@@ -17,14 +17,16 @@ import argparse
 parser = argparse.ArgumentParser(description='Script for generating plots to analyze ERCnet run')
 
 parser.add_argument('-p', '--path', type=str, metavar='', required=True, help='Full path to ERCnet output files to analyze.') 
+parser.add_argument('-w', '--write', type=str, metavar='', required=True, help='Full path to write analysis files.') 
 parser.add_argument('-r', '--random', type=int, metavar='', required=True, help='Number of random replicates to generate and analyze.') 
 
 #Define the parser
 args = parser.parse_args()
 
 #Store arguments
-ercNetOutputFiles=args.path
-numberOfRandom=args.random
+ercNetOutputFiles = args.path
+analysisWritePath = args.write
+numberOfRandom = args.random
 
 def collectFiles(path, endStr = '.tsv'):
     files = []
@@ -281,7 +283,7 @@ def writeOverlapFile(presenceTablePath, summaryFolderPath):
 
     print('Complete')
 
-def main(masterFolder, reps):
+def main(masterFolder, writePath, reps):
     print('###################################')
     print('# Starting Analysis of ERCnet Run #')
     print('###################################')
@@ -292,14 +294,16 @@ def main(masterFolder, reps):
 
     #####OUTPUT DIRECTORY#####
     ##Establish directory for analysis output
-    outFolder = masterFolder + '/OUT_ERCnet_Analysis'
+    outFolder = writePath
 
+    '''
     if os.path.exists(outFolder):
         print('Existing output folder found.')
         print('Generating unique output directory for analysis files')
         outFolder = uniqueOut(outFolder)
         print('----------------------------------------------------------')
-
+    '''
+    
     print('Output files will be written in: '  + outFolder)
     print('==========================================================')
 
@@ -414,4 +418,4 @@ def main(masterFolder, reps):
     print('Full analysis complete!')
 
 if __name__ == '__main__':
-    main(ercNetOutputFiles, numberOfRandom)
+    main(ercNetOutputFiles, analysisWritePath, numberOfRandom)
