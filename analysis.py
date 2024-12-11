@@ -100,14 +100,14 @@ def randomSetsOverlap(randomSets, writeLocation):
     print('Complete')
 
     print('\tCreate and populate summary dataframe... ', flush=True, end=' ')
-    overlapContents = pandas.DataFrame(columns=['File_Name', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'])
+    overlapContents = pandas.DataFrame(columns=['File_Name', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'])
     #print(overlapContents)
 
     for i in range(len(dfs)):
         newRow = [files[i]]
         data = dfs[i]['Total'].value_counts().to_list()
         newRow += data
-        newRow += [0]*(13 - len(newRow))
+        newRow += [0]*(21 - len(newRow))
         #print(newRow)
         overlapContents.loc[len(overlapContents.index)] = newRow
 
@@ -115,7 +115,7 @@ def randomSetsOverlap(randomSets, writeLocation):
     propList = []
 
     for row in overlapContents.index:
-        numeratorList = list(overlapContents.iloc[row, 2:13])
+        numeratorList = list(overlapContents.iloc[row, 2:21])
         numerator = int(np.nansum(numeratorList))
         oneColumn = int(overlapContents.iloc[row, 1])
         denominator = numerator + oneColumn
