@@ -231,12 +231,23 @@ def generatePresAbTable(workingFolderPath, writeLocation):
     ## Produce a table the indicates presence or absence of gene pair in a file and sums the total occurrences
     # Create new dataframe with columns for gene pair, each file in sorted files, and total occurrences
     print('\tSearch for gene pairs in the master set, one by one...', flush=True, end=' ')
+    
+    rows = []
+    for genePair in masterUnique:
+        newRow = [genePair] + presence_absence(genePair, pairsByFileOut)
+        rows.append(newRow)
+    
+    presenceTable = pandas.DataFrame(rows, columns=['Gene_Pair'] + sortedFiles + ['Total'])
+
+    '''
     presenceTable = pandas.DataFrame(columns=['Gene_Pair'] + sortedFiles + ['Total'])
     for genePair in masterUnique:
         # Determine what files contain the gene pair of interest
         newRow = [genePair] + presence_absence(genePair, pairsByFileOut)
         # Insert new row into dataframe
         presenceTable.loc[len(presenceTable)] = newRow
+    '''
+
     print('Complete')
     print('Presence-absence table generation complete. Ready to write...')        
     return presenceTable
